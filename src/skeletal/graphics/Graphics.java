@@ -54,7 +54,7 @@ public class Graphics {
 			.withForwardCompatible(true)
 			.withProfileCore(true);
 		
-		dispMode = Display.getAvailableDisplayModes()[2];
+		dispMode = Display.getAvailableDisplayModes()[1];
 		Display.setDisplayMode(dispMode);
 		Display.setTitle(WINDOW_TITLE);
 		Display.create(pixelFormat, context);

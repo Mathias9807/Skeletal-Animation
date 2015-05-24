@@ -1,9 +1,9 @@
 #version 330
 
-layout(location = 0) out vec4 color;
+layout(location = 0) out vec4 outColor;
 
-in vec2 uv_tan;
+uniform vec3 color;
 
 void main() {
-    color = vec4(1, 0, 0, 1);
+    outColor = vec4(color, 1);
 }

@@ -3,12 +3,11 @@ package skeletal.graphics;
 import static skeletal.graphics.opengl.FBO.setFrameBuffer;
 import static skeletal.graphics.opengl.OpenGLUtils.*;
 import static skeletal.graphics.opengl.Shaders.*;
+import skeletal.graphics.opengl.*;
+import skeletal.level.*;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.*;
-
-import skeletal.graphics.opengl.*;
-import skeletal.level.Level;
 
 public class BasicRenderer implements RenderEngine {
 	
@@ -49,15 +48,34 @@ public class BasicRenderer implements RenderEngine {
 		matView.rotate(Level.camRot.x, new Vector3f(1, 0, 0));
 		matView.rotate(Level.camRot.y, new Vector3f(0, 1, 0));
 		matView.translate(Level.camPos.negate(null));
-		System.out.println(Level.camPos);
 		useMatrix(matView, "matView");
 		
+		matModel.setIdentity();
+		matModel.translate(new Vector3f(-10, 0, 10));
+		matModel.rotate((float) -Math.PI / 2, new Vector3f(1, 0, 0));
+		matModel.scale(new Vector3f(20, 20, 20));
 		useMatrix(matModel, "matModel");
+		setParam3f("color", 0.12f, 0.12f, 0.12f);
 		Graphics.VAOArray[0].render();
+		
+		setParam3f("color", 1, 0, 0);
+		renderBone(Level.player.skeleton);
+	}
+	
+	private void renderBone(Bone b) {
+		matModel.setIdentity();
+		matModel.translate(b.getBoneEnd());
+		System.out.println(b.getBoneEnd() + " " + b.nodes.size());
+		matModel.scale(new Vector3f(b.sphereRadius, b.sphereRadius, b.sphereRadius));
+		useMatrix(matModel, "matModel");
+		
+		Graphics.VAOArray[1].render();
+		
+		for (int i = 0; i < b.nodes.size(); i++) 
+			renderBone(b.nodes.get(i));
 	}
 
 	public void end() {
-		
 	}
 
 }

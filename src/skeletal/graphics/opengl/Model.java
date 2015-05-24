@@ -30,6 +30,7 @@ public class Model implements Runnable {
 	public static void loadModels() {
 		ArrayList<Model> tempArray = new ArrayList<Model>();
 		tempArray.add(new Model("plane.obj"));
+		tempArray.add(new Model("sphere.obj"));
 		models = new Model[tempArray.size()];
 		tempArray.toArray(models);
 	}
