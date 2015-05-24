@@ -1,6 +1,8 @@
 package skeletal.level;
 
-import org.lwjgl.util.vector.Vector3f;
+import org.lwjgl.util.vector.*;
+
+import skeletal.graphics.*;
 
 public class Level {
 	
@@ -18,10 +20,13 @@ public class Level {
 	public static void tick(double delta) {
 		player.tick(delta);
 		
-		camPos.set(player.pos);
-		camPos.z += 1;
-		
-		camRot = player.rot;
+		Matrix4f matView = ((BasicRenderer) Graphics.rEngine).matView;
+		matView.setIdentity();
+		matView.translate(new Vector3f(0, 0, -1.5f));
+		matView.rotate(0.5f, new Vector3f(1, 0, 0));
+		matView.rotate(player.rot.x, new Vector3f(1, 0, 0));
+		matView.rotate(player.rot.y, new Vector3f(0, 1, 0));
+		matView.translate(player.pos.negate(null));
 	}
 	
 }

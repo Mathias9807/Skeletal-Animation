@@ -16,7 +16,7 @@ public class BasicRenderer implements RenderEngine {
 	
 	private int shaderBasic;
 	
-	private Matrix4f matProj, matView, matModel;
+	public Matrix4f matProj, matView, matModel;
 	
 	public void init() {
 		GL11.glClearColor(0.2f, 0.2f, 0.3f, 0);
@@ -43,11 +43,6 @@ public class BasicRenderer implements RenderEngine {
 		setFrameBuffer(null);
 		setShader(shaderBasic);
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-		
-		matView.setIdentity();
-		matView.rotate(Level.camRot.x, new Vector3f(1, 0, 0));
-		matView.rotate(Level.camRot.y, new Vector3f(0, 1, 0));
-		matView.translate(Level.camPos.negate(null));
 		useMatrix(matView, "matView");
 		
 		matModel.setIdentity();
@@ -65,11 +60,15 @@ public class BasicRenderer implements RenderEngine {
 	private void renderBone(Bone b) {
 		matModel.setIdentity();
 		matModel.translate(b.getBoneEnd());
-		System.out.println(b.getBoneEnd() + " " + b.nodes.size());
 		matModel.scale(new Vector3f(b.sphereRadius, b.sphereRadius, b.sphereRadius));
 		useMatrix(matModel, "matModel");
 		
 		Graphics.VAOArray[1].render();
+		
+		if (!b.start.equals(b.getBoneEnd())) {
+			matModel.setIdentity();
+			matModel.translate(b.getBoneEnd());
+		}
 		
 		for (int i = 0; i < b.nodes.size(); i++) 
 			renderBone(b.nodes.get(i));

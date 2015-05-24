@@ -31,6 +31,7 @@ public class Model implements Runnable {
 		ArrayList<Model> tempArray = new ArrayList<Model>();
 		tempArray.add(new Model("plane.obj"));
 		tempArray.add(new Model("sphere.obj"));
+		tempArray.add(new Model("cylinder.obj"));
 		models = new Model[tempArray.size()];
 		tempArray.toArray(models);
 	}
