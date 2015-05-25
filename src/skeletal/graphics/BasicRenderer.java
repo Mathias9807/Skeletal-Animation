@@ -19,7 +19,7 @@ public class BasicRenderer implements RenderEngine {
 	public Matrix4f matProj, matView, matModel;
 	
 	public void init() {
-		GL11.glClearColor(0.2f, 0.2f, 0.3f, 0);
+		GL11.glClearColor(0.6f, 0.6f, 0.9f, 0);
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
 		GL11.glEnable(GL11.GL_CULL_FACE);
 		GL11.glCullFace(GL11.GL_BACK);
@@ -50,11 +50,11 @@ public class BasicRenderer implements RenderEngine {
 		matModel.rotate((float) -Math.PI / 2, new Vector3f(1, 0, 0));
 		matModel.scale(new Vector3f(20, 20, 20));
 		useMatrix(matModel, "matModel");
-		setParam3f("color", 0.12f, 0.12f, 0.12f);
+		setParam3f("color", 0.5f, 0.5f, 0.5f);
 		Graphics.VAOArray[0].render();
 		
-		setParam3f("color", 1, 0, 0);
 		renderBone(Level.player.skeleton);
+		renderBone(Level.dummy.skeleton);
 	}
 	
 	private void renderBone(Bone b) {
@@ -63,11 +63,18 @@ public class BasicRenderer implements RenderEngine {
 		matModel.scale(new Vector3f(b.sphereRadius, b.sphereRadius, b.sphereRadius));
 		useMatrix(matModel, "matModel");
 		
+		setParam3f("color", 0.4f, 0.4f, 0.4f);
 		Graphics.VAOArray[1].render();
 		
-		if (!b.start.equals(b.getBoneEnd())) {
+		if (b.dir.lengthSquared() != 0) {
 			matModel.setIdentity();
-			matModel.translate(b.getBoneEnd());
+			matModel.translate(b.start);
+			Matrix4f.mul(matModel, OpenGLUtils.lookAt(b.dir), matModel);
+			matModel.scale(new Vector3f(0.02f, 0.02f, b.dir.length()));
+			useMatrix(matModel, "matModel");
+			
+			setParam3f("color", 0.9f, 0.9f, 0.9f);
+			Graphics.VAOArray[2].render();
 		}
 		
 		for (int i = 0; i < b.nodes.size(); i++) 

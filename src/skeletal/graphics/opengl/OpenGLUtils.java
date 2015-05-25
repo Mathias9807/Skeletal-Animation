@@ -35,23 +35,72 @@ public class OpenGLUtils {
 		Matrix4f r = new Matrix4f();
 		r.setIdentity();
 		
-		Vector3f up = new Vector3f(0, 1, 0);
-		
-		Vector3f x = Vector3f.cross(dir, up, null).normalise(null);
-		Vector3f y = Vector3f.cross(x, dir, null).normalise(null);
 		Vector3f z = dir.normalise(null);
+		
+		Vector3f up;
+		if (z.y == 1) up = new Vector3f(0, 0, -1);
+		else if (z.y == -1) up = new Vector3f(0, 0, 1);
+		else up = new Vector3f(0, 1, 0);
+		
+		Vector3f x = Vector3f.cross(up, dir, null).normalise(null);
+		Vector3f y = Vector3f.cross(dir, x, null).normalise(null);
 		r.m00 = x.x;
-		r.m01 = x.z;
-		r.m02 = x.y;
+		r.m01 = x.y;
+		r.m02 = x.z;
 		r.m10 = y.x;
-		r.m11 = y.z;
-		r.m12 = y.y;
+		r.m11 = y.y;
+		r.m12 = y.z;
 		r.m20 = z.x;
-		r.m21 = z.z;
-		r.m22 = z.y;
+		r.m21 = z.y;
+		r.m22 = z.z;
 		
-		r.invert();
-		
+		return r;
+	}
+	
+	public static Matrix4f getRotMatAngle(Vector3f angles) {
+		Matrix4f m = new Matrix4f();
+		m.rotate(angles.x, new Vector3f(1, 0, 0));
+		m.rotate(angles.y, new Vector3f(0, 1, 0));
+		m.rotate(angles.z, new Vector3f(0, 0, 1));
+		return m;
+	}
+	
+	public static Vector4f rotate(Vector3f point, Vector3f angles) {
+		Matrix4f m = getRotMatAngle(angles);
+		Vector4f v = new Vector4f(point.x, point.y, point.z, 1);
+		Matrix4f.transform(m, v, v);
+		point.set(v.x, v.y, v.z);
+		return v;
+	}
+	
+	public static Matrix4f getMat4(Matrix3f m) {
+		Matrix4f r = new Matrix4f();
+		r.m00 = m.m00;
+		r.m01 = m.m01;
+		r.m02 = m.m02;
+		r.m10 = m.m10;
+		r.m11 = m.m11;
+		r.m12 = m.m12;
+		r.m20 = m.m20;
+		r.m21 = m.m21;
+		r.m22 = m.m22;
+		return r;
+	}
+	
+	public static Vector4f getVec4(Vector3f v) {
+		Vector4f r = new Vector4f();
+		r.x = v.x;
+		r.y = v.y;
+		r.z = v.z;
+		r.w = 1;
+		return r;
+	}
+	
+	public static Vector3f getVec3(Vector4f v) {
+		Vector3f r = new Vector3f();
+		r.x = v.x;
+		r.y = v.y;
+		r.z = v.z;
 		return r;
 	}
 	
