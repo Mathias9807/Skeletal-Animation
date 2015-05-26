@@ -9,13 +9,15 @@ public class Player {
 	public Vector3f pos, rot;
 	public double speed, rotSpeed;
 	public boolean walking;
+	public int walkDir;
 	
 	private Vector3f lastPos, lastRot;
 	
 	public Bone skeleton, head, lArmUp, rArmUp, lower;
 	public Bone[] rLeg = new Bone[3], lLeg = new Bone[3];
 	
-	private float rWalkPoint = 0, lastRWalkPoint = 0, lWalkPoint = 0, lastLWalkPoint = 0, stepLength = 0.4f;
+	private float rWalkPoint = 0, lWalkPoint = 0, stepLength = 0.3f, legLength = 0.4f, 
+			legHeight = (float) Math.sqrt(Math.pow(legLength * 2, 2) - Math.pow(stepLength, 2));
 	private boolean rStepping = true;
 
 	public Player() {
@@ -23,7 +25,7 @@ public class Player {
 		rot 		= new Vector3f();
 		lastPos		= new Vector3f(pos);
 		lastRot 	= new Vector3f(rot);
-		speed 		= 1;
+		speed 		= 3;
 		rotSpeed	= 0.8f;
 		
 		skeleton 	= new Bone(new Vector3f(pos), new Vector3f(0, 0, 0), 0.09f);
@@ -31,10 +33,10 @@ public class Player {
 		lower 		= skeleton.extendSkeleton(new Vector3f(0, -0.3f, 0), 0.08f);
 		rLeg[0] 	= lower.extendSkeleton(new Vector3f(0.03f, -0.03f, 0), 0.03f);
 		lLeg[0] 	= lower.extendSkeleton(new Vector3f(-0.03f, -0.03f, 0), 0.03f);
-		rLeg[1] 	= rLeg[0].extendSkeleton(new Vector3f(0.03f, -0.35f, 0), 0.05f);
-		lLeg[1] 	= lLeg[0].extendSkeleton(new Vector3f(-0.03f, -0.35f, 0), 0.05f);
-		rLeg[2] 	= rLeg[1].extendSkeleton(new Vector3f(0, -0.35f, 0), 0.05f);
-		lLeg[2] 	= lLeg[1].extendSkeleton(new Vector3f(0, -0.35f, 0), 0.05f);
+		rLeg[1] 	= rLeg[0].extendSkeleton(new Vector3f(0.03f, -legHeight / 2, 0), 0.05f);
+		lLeg[1] 	= lLeg[0].extendSkeleton(new Vector3f(-0.03f, -legHeight / 2, 0), 0.05f);
+		rLeg[2] 	= rLeg[1].extendSkeleton(new Vector3f(0, -legHeight / 2, 0), 0.05f);
+		lLeg[2] 	= lLeg[1].extendSkeleton(new Vector3f(0, -legHeight / 2, 0), 0.05f);
 	}
 	
 	public void tick(double delta) {
@@ -45,6 +47,7 @@ public class Player {
 		if (isKeyDown(KEY_LSHIFT)) 	pos.y -= speed * delta;
 		if (dir.z == 0) walking = false;
 		else walking = true;
+		walkDir = dir.z > 0 ? 1 : -1;
 		
 		float angle = rot.y;
 		pos.z += dir.z * Math.cos(angle);
@@ -72,6 +75,7 @@ public class Player {
 				lWalkPoint += speed * delta;
 				if (rWalkPoint < -stepLength) {
 					rWalkPoint = -stepLength;
+					lWalkPoint = stepLength;
 					rStepping = false;
 				}
 			}else {
@@ -79,23 +83,43 @@ public class Player {
 				rWalkPoint += speed * delta;
 				if (lWalkPoint < -stepLength) {
 					lWalkPoint = -stepLength;
+					rWalkPoint = stepLength;
 					rStepping = true;
 				}
 			}
 		}
 		
-		float rDeltaWalk = rWalkPoint - lastRWalkPoint;
-		rLeg[2].dir.z += -rDeltaWalk * Math.cos(rot.y);
-		rLeg[2].dir.x += rDeltaWalk * Math.sin(rot.y);
-		rLeg[2].dir.y = -0.35f + 1.5f * (float) (Math.cos(rWalkPoint) - Math.cos(stepLength)) * (rStepping ? 0 : 1);
+		Vector3f lPos = new Vector3f(lLeg[0].getBoneEnd()), 
+				rPos = new Vector3f(rLeg[0].getBoneEnd());
+		rPos.y = rLeg[0].start.y - legHeight;
+		lPos.y = lLeg[0].start.y - legHeight;
 		
-		float lDeltaWalk = lWalkPoint - lastLWalkPoint;
-		lLeg[2].dir.z += -lDeltaWalk * Math.cos(rot.y);
-		lLeg[2].dir.x += lDeltaWalk * Math.sin(rot.y);
-		lLeg[2].dir.y = -0.35f + 1.5f * (float) (Math.cos(lWalkPoint) - Math.cos(stepLength)) * (rStepping ? 1 : 0);
+		rPos.z += -rWalkPoint * Math.cos(rot.y) * -walkDir;
+		rPos.x += rWalkPoint * Math.sin(rot.y) * -walkDir;
+		rPos.y += 1.5f * (float) (Math.cos(rWalkPoint) - Math.cos(stepLength)) * (rStepping ? 0 : 1);
 		
-		lastRWalkPoint = rWalkPoint;
-		lastLWalkPoint = lWalkPoint;
+		lPos.z += -lWalkPoint * Math.cos(rot.y) * -walkDir;
+		lPos.x += lWalkPoint * Math.sin(rot.y) * -walkDir;
+		lPos.y += 1.5f * (float) (Math.cos(lWalkPoint) - Math.cos(stepLength)) * (rStepping ? 1 : 0);
+		
+		rLeg[1].dir.set((ReadableVector3f) Vector3f.sub(rPos, rLeg[0].start, null).scale(0.5f));
+		lLeg[1].dir.set((ReadableVector3f) Vector3f.sub(lPos, lLeg[0].start, null).scale(0.5f));
+		
+		rLeg[2].setWorldEnd(rPos);
+		lLeg[2].setWorldEnd(lPos);
+		
+		Vector3f xLegParr = new Vector3f((float) Math.cos(rot.y), 0, (float) Math.sin(rot.y));
+		Vector3f lLegParr = Vector3f.cross(xLegParr, lLeg[1].dir, null).normalise(null);
+		Vector3f rLegParr = Vector3f.cross(xLegParr, rLeg[1].dir, null).normalise(null);
+		
+		float rExtrude, lExtrude;
+		rExtrude = (float) Math.sqrt(Math.abs(legLength * legLength - rLeg[1].dir.lengthSquared()));
+		lExtrude = (float) Math.sqrt(Math.abs(legLength * legLength - lLeg[1].dir.lengthSquared()));
+		
+		Vector3f.add(rLeg[1].dir, (Vector3f) rLegParr.scale(rExtrude), rLeg[1].dir);
+		Vector3f.add(lLeg[1].dir, (Vector3f) lLegParr.scale(lExtrude), lLeg[1].dir);
+		
+		System.out.println(xLegParr);
 	}
 
 }

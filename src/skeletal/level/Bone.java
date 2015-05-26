@@ -47,4 +47,8 @@ public class Bone {
 		return new Vector3f(end);
 	}
 	
+	public void setWorldEnd(Vector3f v) {
+		dir.set(Vector3f.sub(v, start, null));
+	}
+	
 }
